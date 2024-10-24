@@ -1,77 +1,37 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 
-// import { useState } from 'react';
-// import { todosService } from '../../api';
-import { useEffect, useRef, useState } from 'react';
-import { Errors } from '../../types/Errors';
+import React, { useEffect, useRef, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
 
 type Props = {
   todo: Todo;
-  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
-  setErrorMessage: React.Dispatch<React.SetStateAction<Errors>>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  deleteTodoId: number[];
-  setDeleteTodoId: React.Dispatch<React.SetStateAction<number[]>>;
+  loadingTodoId: number[];
+
   handleDeleteTodo: (id: number) => void;
   handleUpdateTodo: (todoToUpdate: Todo) => void;
-  // isEditing: boolean;
-  // setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+
+  editedTodo: Todo | null;
+  setEditedTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
 
 export const TodoItem: React.FC<Props> = ({
   todo,
-  // setTodos,
-  isLoading,
-  // setIsLoading,
-  deleteTodoId,
-  // setErrorMessage,
+  loadingTodoId,
   handleDeleteTodo,
   handleUpdateTodo,
-  // isEditing,
-  // setIsEditing,
+  editedTodo,
+  setEditedTodo,
 }) => {
-  // const [checked, setChecked] = useState(false);
-
-  // const handleChangeChecked
-
-  // const handleUpdateTodo = (todoToUpdate: Todo) => {
-  //   setIsLoading(true);
-
-  //   todosService
-  //     .updateTodo(todoToUpdate)
-  //     .then(updatedTodo => {
-  //       // console.log(updatedTodo);
-
-  //       // setTodos((currentTodos: Todo[]): Todo[] => {
-  //       setTodos(currentTodos => {
-  //         //   const newTodos = [...currentTodos];
-  //         //   const index = newTodos.findIndex(
-  //         //     defTodo => defTodo.id === todoToUpdate.id,
-  //         //   );
-
-  //         //   return newTodos.splice(index, 1, updatedTodo);
-
-  //         return currentTodos.map(defTodo =>
-  //           defTodo.id === updatedTodo.id ? updatedTodo : defTodo,
-  //         );
-  //       });
-  //     })
-  //     .catch(() => setErrorMessage(Errors.UPDATE_TODO))
-  //     .finally(() => setIsLoading(false));
-  // };
-
   const [newTitle, setNewTitle] = useState(todo.title);
-  const [isEditing, setIsEditing] = useState(false);
+
+  const isBeingEdited = editedTodo?.id === todo.id;
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveChanges = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // setIsLoading(true);
 
     const preparedTitle = newTitle.trim();
 
@@ -82,33 +42,30 @@ export const TodoItem: React.FC<Props> = ({
     }
 
     if (preparedTitle === todo.title) {
-      setIsEditing(false);
+      setEditedTodo(null);
 
       return;
     }
 
-    handleUpdateTodo({ ...todo, title: newTitle });
-    //   .then(() => {
-    //   setIsLoading(false);
-    //   setIsEditing(false);
-    // });
-
-
-    // прокинути errorMessage i робити !setIsEditing(false)
-    // setIsLoading(false);
-
-    setIsEditing(false);
+    handleUpdateTodo({ ...todo, title: preparedTitle });
   };
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(event.target.value);
   };
 
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
+  const handleEscape = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      setEditedTodo(null);
+      setNewTitle(todo.title);
     }
-  }, [isEditing]);
+  };
+
+  useEffect(() => {
+    if (isBeingEdited) {
+      inputRef.current?.focus();
+    }
+  }, [isBeingEdited]);
 
   return (
     <div
@@ -124,48 +81,29 @@ export const TodoItem: React.FC<Props> = ({
           className="todo__status"
           checked={todo.completed}
           disabled={!todo.id}
-          onChange={
-            event =>
-              handleUpdateTodo({ ...todo, completed: event.target.checked })
-            // .catch(error => {
-            //   throw error;
-            // })
-            // .finally(() => setIsLoading(false))
+          onChange={event =>
+            handleUpdateTodo({ ...todo, completed: event.target.checked })
           }
         />
       </label>
 
-      {/* // state, = for togle all is active' => and because of this */}
-      {/* if one of them is not active change todo.completed  */}
-
-      {isEditing ? (
-        <form
-          onSubmit={handleSaveChanges}
-          onBlur={handleSaveChanges} /* onKeyUp={()} */
-        >
+      {editedTodo === todo ? (
+        <form onSubmit={handleSaveChanges} onBlur={handleSaveChanges}>
           <input
             ref={inputRef}
             data-cy="TodoTitleField"
             type="text"
             className="todo__title-field"
             placeholder="Empty todo will be deleted"
-            // value="Todo is being edited now"
             value={newTitle}
             onChange={handleTitleChange}
-            onKeyUp={event => {
-              // console.log(event);
-
-              if (event.key === 'Escape') {
-                setIsEditing(false);
-                setNewTitle(todo.title);
-              }
-            }}
+            onKeyUp={handleEscape}
           />
         </form>
       ) : (
         <>
           <span
-            onDoubleClick={() => setIsEditing(true)}
+            onDoubleClick={() => setEditedTodo(todo)}
             data-cy="TodoTitle"
             className="todo__title"
           >
@@ -183,37 +121,10 @@ export const TodoItem: React.FC<Props> = ({
         </>
       )}
 
-      {/* <span data-cy="TodoTitle" className="todo__title">
-        {todo.title}
-      </span>
-
-      <button
-        type="button"
-        className="todo__remove"
-        data-cy="TodoDelete"
-        onClick={() => handleDeleteTodo(todo.id)}
-      >
-        ×
-      </button>
-
-      {false && (
-        <form>
-          <input
-            data-cy="TodoTitleField"
-            type="text"
-            className="todo__title-field"
-            placeholder="Empty todo will be deleted"
-            value="Todo is being edited now"
-          />
-        </form>
-      )} */}
-
       <div
         data-cy="TodoLoader"
         className={cn('modal overlay', {
-          'is-active':
-            (isLoading && todo.id === 0) ||
-            (isLoading && deleteTodoId.includes(todo.id)),
+          'is-active': loadingTodoId.includes(todo.id) || todo.id === 0,
         })}
       >
         <div className="modal-background has-background-white-ter" />

@@ -14,27 +14,27 @@ import { Errors } from '../../types/Errors';
 type Props = {
   tempTodo: Todo | null;
   setTempTodo: Dispatch<React.SetStateAction<Todo | null>>;
-  isLoading: boolean;
-  setIsLoading: Dispatch<React.SetStateAction<boolean>>;
+
   todos: Todo[];
   setTodos: Dispatch<SetStateAction<Todo[]>>;
+
   setErrorMessage: (Error: Errors) => void;
-  errorMessage: string;
+
   handleUpdateTodo: (todoToUpdate: Todo) => void;
-  // handleToggleAll: (todos: Todo[]) => Todo[];
+
+  loadingTodoId: number[];
+  setLoadingTodoId: React.Dispatch<React.SetStateAction<number[]>>;
 };
 
 export const Header: React.FC<Props> = ({
-  // tempTodo,
+  tempTodo,
   setTempTodo,
-  isLoading,
-  setIsLoading,
   setErrorMessage,
   todos,
   setTodos,
-  errorMessage,
   handleUpdateTodo,
-  // handleToggleAll,
+  loadingTodoId,
+  setLoadingTodoId,
 }) => {
   const field = useRef<HTMLInputElement>(null);
   const [newTitle, setNewTitle] = useState('');
@@ -47,7 +47,6 @@ export const Header: React.FC<Props> = ({
     const titleTrim = title.trim();
 
     if (!titleTrim) {
-      setIsLoading(false);
       setErrorMessage(Errors.TITLE);
 
       return;
@@ -64,23 +63,29 @@ export const Header: React.FC<Props> = ({
       ...newTodo,
     });
 
+    setLoadingTodoId(currentIds => [...currentIds, 0]);
+
     return todosService
       .createTodo(newTodo)
       .then(defTodo => {
         setTodos(currentTodos => [...currentTodos, defTodo]);
+
         setNewTitle('');
       })
       .catch(() => setErrorMessage(Errors.ADD_TODO))
       .finally(() => {
         field.current?.focus();
+
         setTempTodo(null);
-        setIsLoading(false);
+
+        setLoadingTodoId(currentIds =>
+          currentIds.filter(currId => currId !== 0),
+        );
       });
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
 
     addTodo({
       userId: USER_ID,
@@ -92,27 +97,25 @@ export const Header: React.FC<Props> = ({
   const allCompletedTodos = todos.every(todo => todo.completed);
 
   function handleToggleAll(defTodos: Todo[]) {
+    const activeTodos = defTodos.filter(todo => !todo.completed);
+
     if (allCompletedTodos) {
       defTodos.forEach(defTodo =>
         handleUpdateTodo({ ...defTodo, completed: false }),
       );
     } else {
-      defTodos.forEach(defTodo =>
+      activeTodos.forEach(defTodo =>
         handleUpdateTodo({ ...defTodo, completed: true }),
       );
     }
   }
 
   useEffect(() => {
-    // if (!setLoadingTodoId)
     field.current?.focus();
-    // }, [todos.length, tempTodo]);
-    // }, [isLoading, errorMessage]);
-  }, [todos]);
+  }, [todos.length, tempTodo]);
 
   return (
     <header className="todoapp__header">
-      {/* this button should have `active` class only if all todos are completed */}
       {todos.length > 0 && (
         <button
           type="button"
@@ -133,7 +136,7 @@ export const Header: React.FC<Props> = ({
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
           onChange={handleTitle}
-          disabled={isLoading}
+          disabled={loadingTodoId.includes(0)}
         />
       </form>
     </header>

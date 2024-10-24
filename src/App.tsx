@@ -6,8 +6,6 @@ import { ErrorNotification } from './components/ErrorNotification';
 
 import { getFilteredTodosByStatus } from './utils/getFilteredTodosByStatus';
 
-import { deleteTodo, getTodos } from './api/todos';
-
 import { Todo } from './types/Todo';
 import { Errors } from './types/Errors';
 import { Filter } from './types/Filters';
@@ -18,9 +16,8 @@ export const App: React.FC = () => {
   const [filter, setFilter] = useState(Filter.All);
 
   const [errorMessage, setErrorMessage] = useState(Errors.DEFAULT);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // const [isEditing, setIsEditing] = useState(false);
+  const [editedTodo, setEditedTodo] = useState<Todo | null>(null);
 
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
 
@@ -33,10 +30,10 @@ export const App: React.FC = () => {
   }, 0);
 
   const handleDeleteTodo = (id: number) => {
-    setIsLoading(true);
     setLoadingTodoId(currentIds => [...currentIds, id]);
 
-    deleteTodo(id)
+    todosService
+      .deleteTodo(id)
       .then(() => {
         setLoadingTodoId(currentIds =>
           currentIds.filter(currId => currId !== id),
@@ -45,56 +42,46 @@ export const App: React.FC = () => {
         setTodos(currentTodos =>
           currentTodos.filter(currentTodo => currentTodo.id !== id),
         );
-        // setIsLoading(false);
       })
       .catch(error => {
-        // setIsLoading(false);
         setErrorMessage(Errors.DELETE_TODO);
         throw error;
       })
       .finally(() => {
-        setIsLoading(false);
         setLoadingTodoId(currentIds =>
           currentIds.filter(currId => currId !== id),
         );
       });
   };
 
-  // create new func for all todos using promise all
-  // change setTodos
-
   const handleUpdateTodo = (todoToUpdate: Todo) => {
-    setIsLoading(true);
     setLoadingTodoId(currentIds => [...currentIds, todoToUpdate.id]);
 
     todosService
       .updateTodo(todoToUpdate)
       .then(updatedTodo => {
-        setLoadingTodoId(currentIds =>
-          currentIds.filter(currId => currId !== todoToUpdate.id),
-        );
-
         setTodos(currentTodos => {
           return currentTodos.map(defTodo =>
             defTodo.id === updatedTodo.id ? updatedTodo : defTodo,
           );
         });
+
+        setEditedTodo(null);
       })
       .catch(error => {
         setErrorMessage(Errors.UPDATE_TODO);
         throw error;
       })
       .finally(() => {
-        setIsLoading(false);
-
-        // setLoadingTodoId(currentIds =>
-        //   currentIds.filter(currId => currId !== todoToUpdate.id),
-        // );
+        setLoadingTodoId(currentIds =>
+          currentIds.filter(currId => currId !== todoToUpdate.id),
+        );
       });
   };
 
   useEffect(() => {
-    getTodos()
+    todosService
+      .getTodos()
       .then(setTodos)
       .catch(() => {
         setErrorMessage(Errors.LOADING);
@@ -109,15 +96,12 @@ export const App: React.FC = () => {
         <Header
           tempTodo={tempTodo}
           setTempTodo={setTempTodo}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
+          loadingTodoId={loadingTodoId}
+          setLoadingTodoId={setLoadingTodoId}
           todos={todos}
           setTodos={setTodos}
-          errorMessage={errorMessage}
           setErrorMessage={setErrorMessage}
           handleUpdateTodo={handleUpdateTodo}
-          // loadingTodoId={loadingTodoId}
-          // handleToggleAll={handleToggleAll}
         />
 
         {todos.length > 0 && (
@@ -125,16 +109,11 @@ export const App: React.FC = () => {
             <TodoList
               todos={filteredTodos}
               tempTodo={tempTodo}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-              setTodos={setTodos}
-              setErrorMessage={setErrorMessage}
               loadingTodoId={loadingTodoId}
-              setDeleteTodoId={setLoadingTodoId}
               handleDeleteTodo={handleDeleteTodo}
               handleUpdateTodo={handleUpdateTodo}
-              // isEditing={isEditing}
-              // setIsEditing={setIsEditing}
+              editedTodo={editedTodo}
+              setEditedTodo={setEditedTodo}
             />
 
             <Footer
