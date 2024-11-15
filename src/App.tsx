@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
 import { Header } from './components/Header';
 import { TodoList } from './components/TodoList';
 import { Footer } from './components/Footer';
@@ -11,7 +11,7 @@ import { Errors } from './types/Errors';
 import { Filter } from './types/Filters';
 import { todosService } from './api';
 
-export const App: React.FC = () => {
+export const App: FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState(Filter.All);
 
@@ -28,6 +28,15 @@ export const App: React.FC = () => {
   const countActiveTodos = todos.reduce((accum, todo) => {
     return !todo.completed ? accum + 1 : accum;
   }, 0);
+
+  const handleGetTodos = () => {
+    todosService
+      .getTodos()
+      .then(setTodos)
+      .catch(() => {
+        setErrorMessage(Errors.LOADING);
+      });
+  };
 
   const handleDeleteTodo = (id: number) => {
     setLoadingTodoId(currentIds => [...currentIds, id]);
@@ -80,12 +89,7 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    todosService
-      .getTodos()
-      .then(setTodos)
-      .catch(() => {
-        setErrorMessage(Errors.LOADING);
-      });
+    handleGetTodos();
   }, []);
 
   return (
@@ -101,7 +105,7 @@ export const App: React.FC = () => {
           todos={todos}
           setTodos={setTodos}
           setErrorMessage={setErrorMessage}
-          handleUpdateTodo={handleUpdateTodo}
+          onUpdateTodo={handleUpdateTodo}
         />
 
         {todos.length > 0 && (
@@ -110,8 +114,8 @@ export const App: React.FC = () => {
               todos={filteredTodos}
               tempTodo={tempTodo}
               loadingTodoId={loadingTodoId}
-              handleDeleteTodo={handleDeleteTodo}
-              handleUpdateTodo={handleUpdateTodo}
+              onDeleteTodo={handleDeleteTodo}
+              onUpdateTodo={handleUpdateTodo}
               editedTodo={editedTodo}
               setEditedTodo={setEditedTodo}
             />
@@ -121,7 +125,7 @@ export const App: React.FC = () => {
               filter={filter}
               setFilter={setFilter}
               todos={todos}
-              handleDeleteTodo={handleDeleteTodo}
+              onDeleteTodo={handleDeleteTodo}
             />
           </>
         )}

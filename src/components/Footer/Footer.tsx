@@ -1,28 +1,29 @@
+import { FC } from 'react';
 import { Filter } from '../../types/Filters';
-import cn from 'classnames';
 import { Todo } from '../../types/Todo';
+import cn from 'classnames';
 
 type Props = {
   countActiveTodos: number;
   filter: Filter;
   setFilter: (filter: Filter) => void;
   todos: Todo[];
-  handleDeleteTodo: (id: number) => void;
+  onDeleteTodo: (id: number) => void;
 };
 
-export const Footer: React.FC<Props> = ({
+export const Footer: FC<Props> = ({
   countActiveTodos,
   filter,
   setFilter,
   todos,
-  handleDeleteTodo,
+  onDeleteTodo,
 }) => {
   const filterOptionName = Object.values(Filter);
 
   const completedTodos = todos.filter(todo => todo.completed);
 
   const deleteAllCompletedTodos = () => {
-    completedTodos.map(todo => handleDeleteTodo(todo.id));
+    completedTodos.map(todo => onDeleteTodo(todo.id));
   };
 
   return (
@@ -54,7 +55,6 @@ export const Footer: React.FC<Props> = ({
         })}
       </nav>
 
-      {/* this button should be disabled if there are no completed todos */}
       <button
         type="button"
         className="todoapp__clear-completed"

@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { Todo } from '../../types/Todo';
 import { TodoItem } from '../TodoItem';
 
@@ -6,19 +7,19 @@ type Props = {
   tempTodo: Todo | null;
   loadingTodoId: number[];
 
-  handleDeleteTodo: (id: number) => void;
-  handleUpdateTodo: (todoToUpdate: Todo) => void;
+  onDeleteTodo: (id: number) => void;
+  onUpdateTodo: (todoToUpdate: Todo) => void;
 
   editedTodo: Todo | null;
   setEditedTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
 
-export const TodoList: React.FC<Props> = ({
+export const TodoList: FC<Props> = ({
   todos,
   tempTodo,
   loadingTodoId,
-  handleDeleteTodo,
-  handleUpdateTodo,
+  onDeleteTodo,
+  onUpdateTodo,
   editedTodo,
   setEditedTodo,
 }) => {
@@ -30,8 +31,8 @@ export const TodoList: React.FC<Props> = ({
             key={todo.id}
             todo={todo}
             loadingTodoId={loadingTodoId}
-            handleDeleteTodo={handleDeleteTodo}
-            handleUpdateTodo={handleUpdateTodo}
+            onDeleteTodo={onDeleteTodo}
+            onUpdateTodo={onUpdateTodo}
             editedTodo={editedTodo}
             setEditedTodo={setEditedTodo}
           />
@@ -42,8 +43,8 @@ export const TodoList: React.FC<Props> = ({
         <TodoItem
           todo={tempTodo}
           loadingTodoId={loadingTodoId}
-          handleDeleteTodo={handleDeleteTodo}
-          handleUpdateTodo={handleUpdateTodo}
+          onDeleteTodo={onDeleteTodo}
+          onUpdateTodo={onUpdateTodo}
           editedTodo={editedTodo}
           setEditedTodo={setEditedTodo}
         />

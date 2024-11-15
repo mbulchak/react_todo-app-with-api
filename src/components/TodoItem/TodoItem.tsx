@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, FC } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
 
@@ -9,18 +9,18 @@ type Props = {
   todo: Todo;
   loadingTodoId: number[];
 
-  handleDeleteTodo: (id: number) => void;
-  handleUpdateTodo: (todoToUpdate: Todo) => void;
+  onDeleteTodo: (id: number) => void;
+  onUpdateTodo: (todoToUpdate: Todo) => void;
 
   editedTodo: Todo | null;
   setEditedTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
 };
 
-export const TodoItem: React.FC<Props> = ({
+export const TodoItem: FC<Props> = ({
   todo,
   loadingTodoId,
-  handleDeleteTodo,
-  handleUpdateTodo,
+  onDeleteTodo,
+  onUpdateTodo,
   editedTodo,
   setEditedTodo,
 }) => {
@@ -36,7 +36,7 @@ export const TodoItem: React.FC<Props> = ({
     const preparedTitle = newTitle.trim();
 
     if (!preparedTitle) {
-      handleDeleteTodo(todo.id);
+      onDeleteTodo(todo.id);
 
       return;
     }
@@ -47,7 +47,7 @@ export const TodoItem: React.FC<Props> = ({
       return;
     }
 
-    handleUpdateTodo({ ...todo, title: preparedTitle });
+    onUpdateTodo({ ...todo, title: preparedTitle });
   };
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +82,7 @@ export const TodoItem: React.FC<Props> = ({
           checked={todo.completed}
           disabled={!todo.id}
           onChange={event =>
-            handleUpdateTodo({ ...todo, completed: event.target.checked })
+            onUpdateTodo({ ...todo, completed: event.target.checked })
           }
         />
       </label>
@@ -114,7 +114,7 @@ export const TodoItem: React.FC<Props> = ({
             type="button"
             className="todo__remove"
             data-cy="TodoDelete"
-            onClick={() => handleDeleteTodo(todo.id)}
+            onClick={() => onDeleteTodo(todo.id)}
           >
             ×
           </button>

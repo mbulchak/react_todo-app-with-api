@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  FC,
 } from 'react';
 import cn from 'classnames';
 import { Todo } from '../../types/Todo';
@@ -20,19 +21,19 @@ type Props = {
 
   setErrorMessage: (Error: Errors) => void;
 
-  handleUpdateTodo: (todoToUpdate: Todo) => void;
+  onUpdateTodo: (todoToUpdate: Todo) => void;
 
   loadingTodoId: number[];
   setLoadingTodoId: React.Dispatch<React.SetStateAction<number[]>>;
 };
 
-export const Header: React.FC<Props> = ({
+export const Header: FC<Props> = ({
   tempTodo,
   setTempTodo,
   setErrorMessage,
   todos,
   setTodos,
-  handleUpdateTodo,
+  onUpdateTodo,
   loadingTodoId,
   setLoadingTodoId,
 }) => {
@@ -101,11 +102,11 @@ export const Header: React.FC<Props> = ({
 
     if (allCompletedTodos) {
       defTodos.forEach(defTodo =>
-        handleUpdateTodo({ ...defTodo, completed: false }),
+        onUpdateTodo({ ...defTodo, completed: false }),
       );
     } else {
       activeTodos.forEach(defTodo =>
-        handleUpdateTodo({ ...defTodo, completed: true }),
+        onUpdateTodo({ ...defTodo, completed: true }),
       );
     }
   }
